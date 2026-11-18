@@ -1,0 +1,341 @@
+{
+  "clips": [
+    {
+      "id": "d64d53ba6e",
+      "name": "I'll be back",
+      "file": "d64d53ba6e.mp3",
+      "source": "https://www.youtube.com/watch?v=I-9dthiJw-Q",
+      "start": 37.0,
+      "duration": 1.729,
+      "rev": 1,
+      "gain_db": 21.0
+    },
+    {
+      "id": "6a0f1e8fbd",
+      "name": "Dun dun dun!!",
+      "file": "6a0f1e8fbd.mp3",
+      "source": "https://www.youtube.com/watch?v=f_iDNea0ROU",
+      "start": 9.0,
+      "duration": 3.257,
+      "rev": 1
+    },
+    {
+      "id": "5e60537c13",
+      "name": "Whattt!!",
+      "file": "5e60537c13.mp3",
+      "source": "https://www.youtube.com/watch?v=f_iDNea0ROU",
+      "start": 14.0,
+      "duration": 1.0
+    },
+    {
+      "id": "722da4b026",
+      "name": "A few moments Later",
+      "file": "722da4b026.mp3",
+      "source": "https://www.youtube.com/watch?v=f_iDNea0ROU",
+      "start": 17.0,
+      "duration": 1.958,
+      "rev": 1,
+      "gain_db": 18.5
+    },
+    {
+      "id": "f5f8b0212d",
+      "name": "Fart",
+      "file": "f5f8b0212d.mp3",
+      "source": "https://www.youtube.com/watch?v=ZKacHpM8yTc",
+      "start": 9.0,
+      "duration": 2.0
+    },
+    {
+      "id": "6089df736b",
+      "name": "Legitness",
+      "file": "6089df736b.mp3",
+      "source": "https://www.youtube.com/watch?v=a9P_j1gMXBo",
+      "start": 1.0,
+      "duration": 1.712,
+      "rev": 1
+    },
+    {
+      "id": "47b396a5f0",
+      "name": "Goat Scream",
+      "file": "47b396a5f0.mp3",
+      "source": "https://www.youtube.com/watch?v=a9P_j1gMXBo",
+      "start": 13.0,
+      "duration": 3.0
+    },
+    {
+      "id": "44d6a42b26",
+      "name": "Who are you",
+      "file": "44d6a42b26.mp3",
+      "source": "https://www.youtube.com/watch?v=a9P_j1gMXBo",
+      "start": 21.0,
+      "duration": 3.445,
+      "rev": 1
+    },
+    {
+      "id": "ce8e3e96ff",
+      "name": "Get em!",
+      "file": "ce8e3e96ff.mp3",
+      "source": "https://www.youtube.com/watch?v=a9P_j1gMXBo",
+      "start": 34.0,
+      "duration": 3.368,
+      "rev": 1
+    },
+    {
+      "id": "e48f48f4fe",
+      "name": "Just Do it",
+      "file": "e48f48f4fe.mp3",
+      "source": "https://www.youtube.com/watch?v=a9P_j1gMXBo",
+      "start": 141.0,
+      "duration": 3.689,
+      "rev": 1
+    },
+    {
+      "id": "1a6d124472",
+      "name": "noice",
+      "file": "1a6d124472.mp3",
+      "source": "https://www.youtube.com/watch?v=a9P_j1gMXBo",
+      "start": 164.0,
+      "duration": 1.1,
+      "rev": 1
+    },
+    {
+      "id": "b532614447",
+      "name": "Dolphin",
+      "file": "b532614447.mp3",
+      "source": "https://www.youtube.com/watch?v=a9P_j1gMXBo",
+      "start": 169.0,
+      "duration": 2.031,
+      "rev": 1
+    },
+    {
+      "id": "fc2ff35461",
+      "name": "Say What??",
+      "file": "fc2ff35461.mp3",
+      "source": "https://www.youtube.com/watch?v=a9P_j1gMXBo",
+      "start": 229.0,
+      "duration": 1.791,
+      "rev": 1
+    },
+    {
+      "id": "bf48a60cdf",
+      "name": "Crickets",
+      "file": "bf48a60cdf.mp3",
+      "source": "https://www.youtube.com/watch?v=a9P_j1gMXBo",
+      "start": 240.0,
+      "duration": 8.886,
+      "rev": 1
+    },
+    {
+      "id": "1cedc7e534",
+      "name": "Recorder",
+      "file": "1cedc7e534.mp3",
+      "source": "https://www.youtube.com/watch?v=X2WH8mHJnhM",
+      "start": 18.0,
+      "duration": 8.779,
+      "rev": 1
+    },
+    {
+      "id": "48f3d36027",
+      "name": "Be Quiet~",
+      "file": "48f3d36027.mp3",
+      "source": "https://www.youtube.com/watch?v=uM8h22DeTbA",
+      "start": 2.0,
+      "duration": 6.419,
+      "rev": 1,
+      "gain_db": 21.5
+    },
+    {
+      "id": "2620b29c91",
+      "name": "Cry",
+      "file": "2620b29c91.mp3",
+      "source": "https://www.youtube.com/watch?v=ee925OTFBCA",
+      "start": 14.0,
+      "duration": 9.818,
+      "gain_db": 18.5,
+      "rev": 1
+    },
+    {
+      "id": "0fc4c00439",
+      "name": "laugh",
+      "file": "0fc4c00439.mp3",
+      "source": "https://www.youtube.com/watch?v=Fkk9DI-8el4",
+      "start": 26.0,
+      "duration": 5.798,
+      "rev": 1,
+      "gain_db": 18.0
+    },
+    {
+      "id": "7947d7f782",
+      "name": "Why you lyin?",
+      "file": "7947d7f782.mp3",
+      "source": "https://www.youtube.com/watch?v=WcWM_1hBu_c",
+      "start": 58.0,
+      "duration": 1.968,
+      "rev": 1,
+      "gain_db": 10.5
+    },
+    {
+      "id": "70957d80bf",
+      "name": "Hee Hee",
+      "file": "70957d80bf.mp3",
+      "source": "https://www.youtube.com/watch?v=TOFqICZpNFk",
+      "start": 0.0,
+      "duration": 1.649,
+      "rev": 1
+    },
+    {
+      "id": "59846a9e68",
+      "name": "Donkey Laugh",
+      "file": "59846a9e68.mp3",
+      "source": "https://www.youtube.com/watch?v=0sbggLX4qKo",
+      "start": 0.0,
+      "duration": 7.0,
+      "gain_db": 14.0
+    },
+    {
+      "id": "3abc2f2788",
+      "name": "Hello",
+      "file": "3abc2f2788.mp3",
+      "source": "https://www.youtube.com/watch?v=U-jTCYMfWMQ",
+      "start": 0.0,
+      "duration": 2.353,
+      "rev": 1
+    }
+  ],
+  "board": [
+    {
+      "clip_id": "6a0f1e8fbd",
+      "color": "#2ecc71"
+    },
+    {
+      "clip_id": "ce8e3e96ff",
+      "color": "#e67e22"
+    },
+    {
+      "clip_id": "f5f8b0212d",
+      "color": "#f1c40f"
+    },
+    {
+      "clip_id": "7947d7f782",
+      "color": "#e74c3c"
+    },
+    {
+      "clip_id": "e48f48f4fe",
+      "color": "#1abc9c"
+    },
+    {
+      "clip_id": "1a6d124472",
+      "color": "#3498db"
+    },
+    {
+      "clip_id": "fc2ff35461",
+      "color": "#9b59b6"
+    },
+    {
+      "clip_id": "bf48a60cdf",
+      "color": "#e84393"
+    },
+    {
+      "clip_id": "1cedc7e534",
+      "color": "#95a5a6"
+    },
+    {
+      "clip_id": "48f3d36027",
+      "color": "#34495e"
+    }
+  ],
+  "presets": [
+    {
+      "id": "b94e03c8",
+      "name": "MAIN",
+      "board": [
+        {
+          "clip_id": "6a0f1e8fbd",
+          "color": "#2ecc71"
+        },
+        {
+          "clip_id": "ce8e3e96ff",
+          "color": "#e67e22"
+        },
+        {
+          "clip_id": "f5f8b0212d",
+          "color": "#f1c40f"
+        },
+        {
+          "clip_id": "7947d7f782",
+          "color": "#e74c3c"
+        },
+        {
+          "clip_id": "e48f48f4fe",
+          "color": "#1abc9c"
+        },
+        {
+          "clip_id": "1a6d124472",
+          "color": "#3498db"
+        },
+        {
+          "clip_id": "fc2ff35461",
+          "color": "#9b59b6"
+        },
+        {
+          "clip_id": "bf48a60cdf",
+          "color": "#e84393"
+        },
+        {
+          "clip_id": "1cedc7e534",
+          "color": "#95a5a6"
+        },
+        {
+          "clip_id": "48f3d36027",
+          "color": "#34495e"
+        }
+      ]
+    },
+    {
+      "id": "905d5299",
+      "name": "#2",
+      "board": [
+        {
+          "clip_id": "d64d53ba6e",
+          "color": "#2ecc71"
+        },
+        {
+          "clip_id": "722da4b026",
+          "color": "#e67e22"
+        },
+        {
+          "clip_id": "6089df736b",
+          "color": "#f1c40f"
+        },
+        {
+          "clip_id": "47b396a5f0",
+          "color": "#e74c3c"
+        },
+        {
+          "clip_id": "5e60537c13",
+          "color": "#1abc9c"
+        },
+        {
+          "clip_id": "2620b29c91",
+          "color": "#3498db"
+        },
+        {
+          "clip_id": "0fc4c00439",
+          "color": "#9b59b6"
+        },
+        {
+          "clip_id": "3abc2f2788",
+          "color": "#e84393"
+        },
+        {
+          "clip_id": "70957d80bf",
+          "color": "#95a5a6"
+        },
+        {
+          "clip_id": "59846a9e68",
+          "color": "#34495e"
+        }
+      ]
+    }
+  ]
+}

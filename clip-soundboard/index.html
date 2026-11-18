@@ -1,0 +1,936 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clip Soundboard</title>
+<style>
+  :root {
+    --bg: #14161c;
+    --panel: #1e212a;
+    --panel-2: #272b36;
+    --line: #333847;
+    --text: #eceef3;
+    --muted: #9aa1b2;
+    --accent: #6c8cff;
+    --danger: #ff6b6b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  header {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 14px 24px; border-bottom: 1px solid var(--line); background: var(--panel);
+    position: sticky; top: 0; z-index: 5;
+  }
+  h1 { font-size: 1.15rem; margin: 0; letter-spacing: .3px; }
+  nav { display: flex; gap: 6px; background: var(--bg); padding: 4px; border-radius: 10px; }
+  nav button {
+    border: 0; background: transparent; color: var(--muted); padding: 8px 16px;
+    border-radius: 8px; font: inherit; cursor: pointer;
+  }
+  nav button.active { background: var(--accent); color: #fff; }
+  main { max-width: 900px; margin: 0 auto; padding: 24px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin-bottom: 20px; }
+  .card h2 { margin: 0 0 12px; font-size: 1rem; }
+  label { display: block; font-size: .8rem; color: var(--muted); margin-bottom: 4px; }
+  input[type=text], input[type=number], select {
+    width: 100%; background: var(--panel-2); color: var(--text); border: 1px solid var(--line);
+    border-radius: 8px; padding: 9px 11px; font: inherit;
+  }
+  input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 0; }
+  .grid { display: grid; gap: 12px; grid-template-columns: 2fr 1fr 1fr; }
+  .grid .wide { grid-column: 1 / -1; }
+  @media (max-width: 620px) { .grid { grid-template-columns: 1fr; } }
+  button.btn {
+    background: var(--accent); color: #fff; border: 0; border-radius: 8px;
+    padding: 9px 16px; font: inherit; cursor: pointer;
+  }
+  button.btn.secondary { background: var(--panel-2); border: 1px solid var(--line); color: var(--text); }
+  button.btn.danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
+  button.btn:disabled { opacity: .5; cursor: wait; }
+  .msg { margin-top: 10px; font-size: .9rem; min-height: 1.2em; }
+  .msg.error { color: var(--danger); }
+  .msg.ok { color: #5fd38d; }
+  .hint { color: var(--muted); font-size: .8rem; margin-top: 6px; }
+
+  /* clip list */
+  .clip {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 12px;
+    border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); margin-bottom: 8px;
+  }
+  .clip .play {
+    flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0;
+    background: var(--accent); color: #fff; font-size: 1rem; cursor: pointer;
+  }
+  .clip .play:active { transform: scale(.94); }
+  .clip input.name {
+    flex: 1 1 140px; min-width: 0; background: transparent; border: 1px solid transparent;
+    border-radius: 6px; padding: 6px 8px; color: var(--text); font: inherit;
+  }
+  .clip input.name:hover { border-color: var(--line); }
+  .clip input.name:focus { border-color: var(--accent); background: var(--panel); outline: none; }
+  .clip .dur { color: var(--muted); font-size: .8rem; white-space: nowrap; }
+  .clip .tiny {
+    background: transparent; border: 1px solid var(--line); color: var(--muted);
+    border-radius: 6px; padding: 5px 9px; cursor: pointer; font: inherit; font-size: .8rem;
+  }
+  .clip .tiny:hover { color: var(--text); border-color: var(--muted); }
+  .clip .tiny.del:hover { color: var(--danger); border-color: var(--danger); }
+  .empty { color: var(--muted); text-align: center; padding: 24px 0; }
+
+  /* soundboard */
+  .layouts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 14px;
+             padding: 12px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+  .layouts label { margin: 0; font-size: .85rem; color: var(--muted); }
+  .layouts select { flex: 1 1 200px; width: auto; min-width: 0; }
+  .layouts input[type=text] { flex: 1 1 180px; width: auto; min-width: 0; }
+  .layouts .sep { flex: none; width: 1px; align-self: stretch; background: var(--line); margin: 0 6px; }
+  .layouts .btn { padding: 9px 14px; white-space: nowrap; }
+  .layouts .msg { flex-basis: 100%; margin: 0; min-height: 0; }
+  .layouts .msg:empty { display: none; }
+  @media (max-width: 620px) { .layouts .sep { display: none; } }
+  .board-top { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+  .board {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 22px; justify-items: center;
+  }
+  @media (max-width: 760px) { .board { grid-template-columns: repeat(2, 1fr); } }
+  .pad {
+    position: relative; width: 100%; max-width: 150px; aspect-ratio: 1; border-radius: 50%;
+    border: 0; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    text-align: center; padding: 14%; font: inherit; font-weight: 700; font-size: .95rem; line-height: 1.15;
+    box-shadow: 0 6px 0 rgba(0,0,0,.35), inset 0 -6px 14px rgba(0,0,0,.18), inset 0 6px 14px rgba(255,255,255,.18);
+    transition: transform .05s, box-shadow .05s, filter .1s;
+    overflow: hidden; word-break: break-word;
+  }
+  .pad:active, .pad.playing { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.35), inset 0 -6px 14px rgba(0,0,0,.18); filter: brightness(1.15); }
+  .pad.empty-slot { background: var(--panel-2) !important; color: var(--muted) !important; border: 2px dashed var(--line); box-shadow: none; font-weight: 500; }
+  .pad .key {
+    position: absolute; top: 12%; left: 50%; transform: translateX(-50%); font-size: .7rem; opacity: .65; font-weight: 600;
+  }
+  .editing .pad { outline: 3px dashed rgba(255,255,255,.5); outline-offset: 4px; }
+
+  dialog {
+    background: var(--panel); color: var(--text); border: 1px solid var(--line);
+    border-radius: 14px; padding: 20px; width: min(380px, 92vw);
+  }
+  dialog::backdrop { background: rgba(0,0,0,.6); }
+  dialog h3 { margin: 0 0 14px; }
+  dialog .row { margin-bottom: 14px; }
+  .swatches { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .swatches button { width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
+  .swatches button.sel { border-color: #fff; }
+  input[type=color] { width: 100%; height: 40px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); padding: 3px; }
+  .dlg-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .hidden { display: none !important; }
+
+  /* trim editor */
+  dialog.trim { width: min(740px, 94vw); }
+  dialog.trim h3 { overflow-wrap: anywhere; }
+  .wave {
+    position: relative; height: 170px; margin: 18px 0 6px; background: var(--bg);
+    border: 1px solid var(--line); border-radius: 10px; touch-action: none; user-select: none;
+    -webkit-user-select: none; cursor: crosshair;
+  }
+  .wave canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; border-radius: 10px; }
+  .wave .shade { position: absolute; top: 0; bottom: 0; background: rgba(8, 10, 14, .74); pointer-events: none; }
+  .wave .shade.l { left: 0; border-radius: 9px 0 0 9px; }
+  .wave .shade.r { right: 0; border-radius: 0 9px 9px 0; }
+  .wave .handle {
+    position: absolute; top: -8px; bottom: -8px; width: 26px; margin-left: -13px; z-index: 2;
+    display: flex; justify-content: center; cursor: ew-resize; outline: none;
+  }
+  .wave .handle::before { content: ""; width: 3px; height: 100%; background: var(--accent); border-radius: 2px; }
+  .wave .handle::after {
+    content: ""; position: absolute; top: 50%; left: 50%; width: 14px; height: 38px; transform: translate(-50%, -50%);
+    border-radius: 7px; border: 2px solid var(--panel);
+    background: linear-gradient(90deg, transparent 4px, rgba(255,255,255,.55) 4px, rgba(255,255,255,.55) 5px, transparent 5px, transparent 7px, rgba(255,255,255,.55) 7px, rgba(255,255,255,.55) 8px, transparent 8px), var(--accent);
+  }
+  .wave .handle:focus-visible::after { box-shadow: 0 0 0 3px rgba(255,255,255,.8); }
+  .wave .playhead { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #fff; opacity: .9; pointer-events: none; z-index: 1; }
+  .wave .wave-msg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: .9rem; text-align: center; padding: 0 16px; }
+  .wave.loading .handle, .wave.loading .shade { display: none; }
+  .trim-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0 4px; }
+  @media (max-width: 560px) { .trim-stats { grid-template-columns: 1fr 1fr; } }
+  .trim-stats output { display: block; padding: 9px 0; font-variant-numeric: tabular-nums; }
+  .vol { margin: 14px 0 4px; padding: 12px 14px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; }
+  .vol-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  .vol-head label { margin: 0; font-size: .9rem; color: var(--text); font-weight: 600; }
+  .vol-head output { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .vol-row { display: flex; align-items: center; gap: 10px; }
+  .vol-row input[type=range] { flex: 1; min-width: 0; accent-color: var(--accent); }
+  .vol-row .btn { padding: 6px 12px; font-size: .85rem; white-space: nowrap; }
+  dialog.trim .dlg-actions { flex-wrap: wrap; margin-top: 14px; }
+  dialog.trim .dlg-actions .push { margin-right: auto; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🔊 Clip Soundboard</h1>
+  <nav>
+    <button id="tabLibrary" class="active">Library</button>
+    <button id="tabBoard">Soundboard</button>
+  </nav>
+</header>
+
+<main>
+  <!-- LIBRARY VIEW -->
+  <section id="viewLibrary">
+    <div class="card">
+      <h2>Add a clip from a video</h2>
+      <form id="addForm" class="grid">
+        <div class="wide">
+          <label for="url">Video link</label>
+          <input id="url" type="text" placeholder="https://www.youtube.com/watch?v=..." required>
+        </div>
+        <div>
+          <label for="name">Name (optional)</label>
+          <input id="name" type="text" maxlength="40" placeholder="Uses the video title if empty">
+        </div>
+        <div>
+          <label for="start">Start time</label>
+          <input id="start" type="text" value="0:00" placeholder="1:23">
+        </div>
+        <div>
+          <label for="duration">Length (1–10 sec)</label>
+          <input id="duration" type="number" min="1" max="10" step="0.5" value="3">
+        </div>
+        <div class="wide">
+          <button class="btn" id="addBtn" type="submit">Save clip</button>
+          <div class="hint">Start time can be seconds (83) or minutes:seconds (1:23). Clips are saved as MP3 in the <code>clips</code> folder next to the app.</div>
+          <div id="addMsg" class="msg"></div>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Saved clips <span id="count" style="color:var(--muted);font-weight:400"></span></h2>
+      <div id="clipList"></div>
+    </div>
+  </section>
+
+  <!-- BOARD VIEW -->
+  <section id="viewBoard" class="hidden">
+    <div class="layouts">
+      <label for="presetSelect">Layout</label>
+      <select id="presetSelect" aria-label="Load a saved layout"></select>
+      <button class="btn danger" id="presetDelete" type="button" title="Delete the selected layout" disabled>Delete</button>
+      <span class="sep"></span>
+      <input type="text" id="presetName" maxlength="40" placeholder="Name this layout…" aria-label="Name for the layout to save">
+      <button class="btn" id="presetSave" type="button" title="Save the buttons exactly as they are now">Save layout</button>
+      <div id="presetMsg" class="msg" role="status"></div>
+    </div>
+    <div class="board-top">
+      <button class="btn secondary" id="stopAll">■ Stop all</button>
+      <button class="btn secondary" id="editToggle">✎ Edit buttons</button>
+    </div>
+    <div id="board" class="board"></div>
+    <p class="hint" style="text-align:center;margin-top:28px" id="boardHint">Tip: press keys 1–9 and 0 on your keyboard to fire the buttons.</p>
+  </section>
+</main>
+
+<dialog id="padDialog">
+  <h3 id="padTitle">Button 1</h3>
+  <div class="row">
+    <label for="padClip">Sound</label>
+    <select id="padClip"></select>
+  </div>
+  <div class="row">
+    <label>Color</label>
+    <input type="color" id="padColor">
+    <div class="swatches" id="swatches"></div>
+  </div>
+  <div class="dlg-actions">
+    <button class="btn secondary" id="padCancel" type="button">Cancel</button>
+    <button class="btn" id="padSave" type="button">Save</button>
+  </div>
+</dialog>
+
+<dialog id="trimDialog" class="trim">
+  <h3>Edit “<span id="trimName"></span>”</h3>
+  <div class="hint">Drag the two handles to pick the part to keep (everything outside them is cut off when you save), and use the volume slider to make it quieter or louder. The original is kept, so you can restore it later.</div>
+  <div class="wave loading" id="wave">
+    <canvas id="waveCanvas"></canvas>
+    <div class="shade l" id="shadeL"></div>
+    <div class="shade r" id="shadeR"></div>
+    <div class="handle" id="hStart" data-which="start" role="slider" tabindex="0" aria-label="Start of the part to keep"></div>
+    <div class="handle" id="hEnd" data-which="end" role="slider" tabindex="0" aria-label="End of the part to keep"></div>
+    <div class="playhead hidden" id="playhead"></div>
+    <div class="wave-msg" id="waveMsg">Loading waveform…</div>
+  </div>
+  <div class="hint">Tip: click a handle, then use ← → to nudge it by 10 ms (Shift = 100 ms, Alt = 1 ms).</div>
+  <div class="trim-stats">
+    <div>
+      <label for="cutStart">Cut from start (ms)</label>
+      <input type="number" id="cutStart" min="0" step="10" value="0" disabled>
+    </div>
+    <div>
+      <label for="cutEnd">Cut from end (ms)</label>
+      <input type="number" id="cutEnd" min="0" step="10" value="0" disabled>
+    </div>
+    <div>
+      <label>Length after trim</label>
+      <output id="remain">–</output>
+    </div>
+  </div>
+  <div class="vol">
+    <div class="vol-head">
+      <label for="gainSlider">Volume boost</label>
+      <output id="gainOut">0 dB</output>
+    </div>
+    <div class="vol-row">
+      <input type="range" id="gainSlider" min="-20" max="24" step="0.5" value="0" disabled>
+      <button class="btn secondary" id="gainAuto" type="button" disabled title="Set the volume so this sound is about as loud as a typical clip">Auto-match</button>
+      <button class="btn secondary" id="gainZero" type="button" disabled>0 dB</button>
+    </div>
+    <div class="hint" id="gainHint">Slide right to make a quiet sound louder (every +6 dB doubles the volume). Press ▶ Preview to hear it. Loud peaks are limited, so it will not distort or hurt your ears.</div>
+  </div>
+  <div id="trimMsg" class="msg"></div>
+  <div class="dlg-actions">
+    <button class="btn secondary push hidden" id="trimRestore" type="button">Restore original</button>
+    <button class="btn secondary" id="trimReset" type="button" disabled>Reset</button>
+    <button class="btn secondary" id="trimPlay" type="button" disabled>▶ Preview</button>
+    <button class="btn secondary" id="trimCancel" type="button" autofocus>Cancel</button>
+    <button class="btn" id="trimSave" type="button" disabled>Save</button>
+  </div>
+</dialog>
+
+<script>
+const PALETTE = ["#e74c3c","#e67e22","#f1c40f","#2ecc71","#1abc9c","#3498db","#9b59b6","#e84393","#95a5a6","#34495e"];
+let state = { clips: [], board: [] };
+let editing = false;
+let currentView = "library";
+let editingSlot = null;
+const players = new Map(); // clip id -> { a: Audio, gain: GainNode }
+
+const $ = (id) => document.getElementById(id);
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, {
+    headers: { "Content-Type": "application/json" },
+    ...opts,
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || "Something went wrong");
+  return data;
+}
+
+async function refresh() {
+  state = await api("/api/state");
+  renderList();
+  renderBoard();
+}
+
+/* ---------- audio ---------- */
+// ?v= changes every time a clip is trimmed, so the browser never plays a stale copy
+function clipUrl(clip) { return "/clips/" + encodeURIComponent(clip.file) + "?v=" + (clip.rev || 0); }
+// Every sound goes: audio -> gain (per-clip volume boost) -> limiter -> speakers.
+// The limiter catches loud peaks so boosting a quiet clip can never distort or blast.
+let master = null;
+const dbToGain = (db) => Math.pow(10, (db || 0) / 20);
+function getMaster() {
+  if (!master) {
+    const ctx = getCtx();
+    master = ctx.createDynamicsCompressor();
+    master.threshold.value = -3; master.knee.value = 0; master.ratio.value = 20;
+    master.attack.value = 0.002; master.release.value = 0.1;
+    master.connect(ctx.destination);
+  }
+  return master;
+}
+function getPlayer(clip) {
+  const rev = clip.rev || 0;
+  let p = players.get(clip.id);
+  if (!p || p.a._rev !== rev) {
+    if (p) { p.a.pause(); try { p.gain.disconnect(); } catch (e) {} }
+    const a = new Audio(clipUrl(clip));
+    a.preload = "auto";
+    a._rev = rev;
+    const ctx = getCtx();
+    const gain = ctx.createGain();
+    ctx.createMediaElementSource(a).connect(gain);
+    gain.connect(getMaster());
+    p = { a, gain };
+    players.set(clip.id, p);
+  }
+  p.gain.gain.value = dbToGain(clip.gain_db);          // always pick up the latest saved volume
+  return p;
+}
+function playClip(clip, padEl) {
+  const ctx = getCtx();
+  if (ctx.state === "suspended") ctx.resume();
+  const { a } = getPlayer(clip);
+  a.currentTime = 0;
+  a.play().catch(() => {});
+  if (padEl) {
+    padEl.classList.add("playing");
+    a.onended = a.onpause = () => padEl.classList.remove("playing");
+  }
+}
+function stopAll() {
+  players.forEach(({ a }) => { a.pause(); a.currentTime = 0; });
+  document.querySelectorAll(".pad.playing").forEach((p) => p.classList.remove("playing"));
+}
+
+/* ---------- library ---------- */
+function fmtDur(c) {
+  const g = c.gain_db ? ` · ${fmtDb(c.gain_db)}` : "";
+  return (Math.round(c.duration * 100) / 100) + "s" + g;
+}
+function fmtDb(db) { return (db > 0 ? "+" : db < 0 ? "−" : "") + Math.abs(db).toFixed(1).replace(/\.0$/, "") + " dB"; }
+
+function renderList() {
+  $("count").textContent = state.clips.length ? `(${state.clips.length})` : "";
+  const list = $("clipList");
+  list.innerHTML = "";
+  if (!state.clips.length) {
+    list.innerHTML = '<div class="empty">No clips yet. Paste a video link above to make your first one.</div>';
+    return;
+  }
+  for (const clip of state.clips) {
+    const row = document.createElement("div");
+    row.className = "clip";
+
+    const play = document.createElement("button");
+    play.className = "play"; play.textContent = "▶"; play.title = "Play";
+    play.onclick = () => playClip(clip);
+
+    const name = document.createElement("input");
+    name.className = "name"; name.type = "text"; name.value = clip.name; name.maxLength = 40;
+    name.title = "Click to rename";
+    const commit = async () => {
+      const v = name.value.trim();
+      if (!v || v === clip.name) { name.value = clip.name; return; }
+      try { await api("/api/clips/" + clip.id, { method: "PATCH", body: { name: v } }); await refresh(); }
+      catch (e) { alert(e.message); name.value = clip.name; }
+    };
+    name.onblur = commit;
+    name.onkeydown = (e) => { if (e.key === "Enter") name.blur(); if (e.key === "Escape") { name.value = clip.name; name.blur(); } };
+
+    const dur = document.createElement("span");
+    dur.className = "dur"; dur.textContent = fmtDur(clip);
+
+    const edit = document.createElement("button");
+    edit.className = "tiny"; edit.textContent = "✂ Edit"; edit.title = "Trim this sound or change its volume";
+    edit.onclick = () => openTrim(clip);
+
+    const onBoard = state.board.findIndex((s) => s.clip_id === clip.id);
+    const add = document.createElement("button");
+    add.className = "tiny";
+    add.textContent = onBoard >= 0 ? "On board #" + (onBoard + 1) : "+ Board";
+    add.disabled = onBoard >= 0;
+    add.onclick = async () => {
+      const free = state.board.findIndex((s) => !s.clip_id);
+      if (free < 0) { alert("All 10 board buttons are used. Edit the board to swap one out."); return; }
+      const board = state.board.map((s, i) => i === free ? { ...s, clip_id: clip.id } : s);
+      await api("/api/board", { method: "PUT", body: { board } });
+      await refresh();
+    };
+
+    const del = document.createElement("button");
+    del.className = "tiny del"; del.textContent = "Delete";
+    del.onclick = async () => {
+      if (!confirm(`Delete "${clip.name}"? The audio file will be removed.`)) return;
+      players.delete(clip.id);
+      await api("/api/clips/" + clip.id, { method: "DELETE" });
+      await refresh();
+    };
+
+    row.append(play, name, dur, edit, add, del);
+    list.append(row);
+  }
+}
+
+$("addForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = $("addBtn"), msg = $("addMsg");
+  btn.disabled = true; btn.textContent = "Downloading…";
+  msg.className = "msg"; msg.textContent = "Fetching and cutting the clip, this can take a few seconds.";
+  try {
+    const clip = await api("/api/clips", {
+      method: "POST",
+      body: {
+        url: $("url").value, name: $("name").value,
+        start: $("start").value, duration: $("duration").value,
+      },
+    });
+    msg.className = "msg ok"; msg.textContent = `Saved "${clip.name}".`;
+    $("name").value = "";
+    await refresh();
+    playClip(state.clips.find((c) => c.id === clip.id));
+  } catch (err) {
+    msg.className = "msg error"; msg.textContent = err.message;
+  } finally {
+    btn.disabled = false; btn.textContent = "Save clip";
+  }
+});
+
+/* ---------- trim editor ---------- */
+const MIN_KEEP = 0.05;                       // keep at least 50 ms (matches the server)
+const trim = { clip: null, gain: 0, savedGain: 0, buffer: null, total: 0, start: 0, end: 0, drag: null, offset: 0,
+               token: 0, source: null, raf: 0, playStart: 0, playFrom: 0, playDur: 0 };
+let audioCtx = null;
+const getCtx = () => audioCtx || (audioCtx = new (window.AudioContext || window.webkitAudioContext)());
+const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+
+function setStart(v) {
+  v = Math.round(clamp(v, 0, trim.end - MIN_KEEP) * 1000) / 1000;
+  trim.start = v < 0.0005 ? 0 : v;
+}
+function setEnd(v) {
+  v = clamp(v, trim.start + MIN_KEEP, trim.total);
+  trim.end = v >= trim.total - 0.0005 ? trim.total : Math.round(v * 1000) / 1000;
+}
+const hasCut = () => trim.start > 0.0005 || trim.total - trim.end > 0.0005;
+const gainChanged = () => Math.abs(trim.gain - trim.savedGain) > 0.001;
+const hasChange = () => hasCut() || gainChanged();
+
+function setGain(db) {
+  trim.gain = Math.round(clamp(db, -20, 24) * 2) / 2;
+  $("gainSlider").value = trim.gain;
+  $("gainOut").textContent = fmtDb(trim.gain);
+  if (trim.gainNode) trim.gainNode.gain.value = dbToGain(trim.gain);   // live while previewing
+  $("trimSave").disabled = !hasChange();
+  $("trimReset").disabled = !hasChange();
+}
+
+function updateTrimUI(skipInput) {
+  const { start, end, total } = trim;
+  if (!total) return;
+  const sp = (start / total) * 100, ep = (end / total) * 100;
+  $("hStart").style.left = sp + "%";
+  $("hEnd").style.left = ep + "%";
+  $("shadeL").style.width = sp + "%";
+  $("shadeR").style.width = (100 - ep) + "%";
+  $("hStart").setAttribute("aria-valuenow", Math.round(start * 1000));
+  $("hEnd").setAttribute("aria-valuenow", Math.round(end * 1000));
+  if (skipInput !== "cutStart") $("cutStart").value = Math.round(start * 1000);
+  if (skipInput !== "cutEnd") $("cutEnd").value = Math.round((total - end) * 1000);
+  $("remain").textContent = `${(end - start).toFixed(2)} s of ${total.toFixed(2)} s`;
+  $("trimSave").disabled = !hasChange();
+  $("trimReset").disabled = !hasChange();
+}
+
+function drawWave() {
+  const buf = trim.buffer;
+  if (!buf) return;
+  const wrap = $("wave"), canvas = $("waveCanvas");
+  const dpr = window.devicePixelRatio || 1;
+  const w = wrap.clientWidth, h = wrap.clientHeight;
+  canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+  const c = canvas.getContext("2d");
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  c.clearRect(0, 0, w, h);
+  const css = getComputedStyle(document.documentElement);
+  const accent = css.getPropertyValue("--accent").trim(), line = css.getPropertyValue("--line").trim(), muted = css.getPropertyValue("--muted").trim();
+
+  const labelH = 18, mid = (h - labelH) / 2, amp = mid - 6;
+
+  // time grid
+  const total = buf.duration;
+  const step = total <= 1.5 ? 0.25 : total <= 4 ? 0.5 : 1;
+  c.font = "11px system-ui, sans-serif"; c.textBaseline = "alphabetic"; c.textAlign = "center";
+  for (let t = step; t < total - 0.05; t += step) {
+    const x = Math.round((t / total) * w) + 0.5;
+    c.strokeStyle = line; c.lineWidth = 1;
+    c.beginPath(); c.moveTo(x, 0); c.lineTo(x, h - labelH); c.stroke();
+    c.fillStyle = muted; c.fillText(Number(t.toFixed(2)) + "s", x, h - 5);
+  }
+  c.strokeStyle = line; c.beginPath(); c.moveTo(0, mid + 0.5); c.lineTo(w, mid + 0.5); c.stroke();
+
+  // waveform: one min/max pair per device pixel column, across all channels
+  const cols = Math.max(1, Math.floor(w * dpr));
+  const per = buf.length / cols;
+  const chans = Array.from({ length: buf.numberOfChannels }, (_, i) => buf.getChannelData(i));
+  const mins = new Float32Array(cols), maxs = new Float32Array(cols);
+  let peak = 0;
+  for (let x = 0; x < cols; x++) {
+    const from = Math.floor(x * per), to = Math.max(from + 1, Math.min(buf.length, Math.floor((x + 1) * per)));
+    let lo = 0, hi = 0;
+    for (const d of chans) for (let i = from; i < to; i++) { const v = d[i]; if (v < lo) lo = v; else if (v > hi) hi = v; }
+    mins[x] = lo; maxs[x] = hi;
+    peak = Math.max(peak, -lo, hi);
+  }
+  const gain = peak > 0 ? Math.min(1 / peak, 6) : 1;   // zoom quiet sounds so they are readable
+  c.fillStyle = accent;
+  for (let x = 0; x < cols; x++) {
+    const y1 = mid - maxs[x] * gain * amp, y2 = mid - mins[x] * gain * amp;
+    c.fillRect(x / dpr, y1, 1 / dpr, Math.max(1 / dpr, y2 - y1));
+  }
+}
+
+async function openTrim(clip) {
+  stopAll(); stopPreview();
+  const token = ++trim.token;
+  Object.assign(trim, { clip, buffer: null, total: 0, start: 0, end: 0, drag: null,
+                        gain: clip.gain_db || 0, savedGain: clip.gain_db || 0 });
+  setGain(trim.gain);
+  $("gainHint").classList.remove("error");
+  $("trimName").textContent = clip.name;
+  $("trimMsg").textContent = ""; $("trimMsg").className = "msg";
+  $("wave").classList.add("loading");
+  $("waveMsg").textContent = "Loading waveform…"; $("waveMsg").classList.remove("hidden");
+  $("trimRestore").classList.toggle("hidden", !clip.edited);
+  $("trimSave").textContent = "Save";                  // clear any leftover "Saving…" from last time
+  for (const id of ["trimCancel", "trimRestore"]) $(id).disabled = false;
+  for (const id of ["cutStart", "cutEnd", "trimPlay", "trimSave", "trimReset", "gainSlider", "gainAuto", "gainZero"]) $(id).disabled = true;
+  $("cutStart").value = 0; $("cutEnd").value = 0; $("remain").textContent = "–";
+  $("trimDialog").showModal();
+  try {
+    const res = await fetch(clipUrl(clip));
+    if (!res.ok) throw new Error("The audio file could not be loaded.");
+    const buf = await getCtx().decodeAudioData(await res.arrayBuffer());
+    if (token !== trim.token) return;                  // dialog was closed meanwhile
+    Object.assign(trim, { buffer: buf, total: buf.duration, start: 0, end: buf.duration });
+    $("wave").classList.remove("loading");
+    $("waveMsg").classList.add("hidden");
+    $("cutStart").max = $("cutEnd").max = Math.floor(buf.duration * 1000);
+    for (const id of ["cutStart", "cutEnd", "trimPlay", "gainSlider", "gainAuto", "gainZero"]) $(id).disabled = false;
+    $("hStart").setAttribute("aria-valuemax", Math.round(buf.duration * 1000));
+    $("hEnd").setAttribute("aria-valuemax", Math.round(buf.duration * 1000));
+    drawWave();
+    updateTrimUI();
+  } catch (err) {
+    if (token !== trim.token) return;
+    $("waveMsg").textContent = "Could not draw the waveform: " + err.message;
+  }
+}
+
+/* dragging the handles (mouse, touch and pen all work through pointer events) */
+const waveEl = $("wave");
+const timeAt = (e) => {
+  const r = waveEl.getBoundingClientRect();
+  return (clamp(e.clientX - r.left, 0, r.width) / r.width) * trim.total;
+};
+function moveDrag(e) {
+  const t = timeAt(e) + trim.offset;
+  if (trim.drag === "start") setStart(t); else setEnd(t);
+  updateTrimUI();
+}
+waveEl.addEventListener("pointerdown", (e) => {
+  if (!trim.buffer || (e.pointerType === "mouse" && e.button !== 0)) return;
+  stopPreview();
+  const handle = e.target.closest(".handle");
+  const t = timeAt(e);
+  if (handle) {                                        // grab it where it is, no jump
+    trim.drag = handle.dataset.which;
+    trim.offset = (trim.drag === "start" ? trim.start : trim.end) - t;
+    handle.focus({ preventScroll: true });
+  } else {                                             // click on the wave: nearest handle jumps there
+    trim.drag = Math.abs(t - trim.start) <= Math.abs(t - trim.end) ? "start" : "end";
+    trim.offset = 0;
+    waveEl.setPointerCapture(e.pointerId);
+    moveDrag(e);
+    $(trim.drag === "start" ? "hStart" : "hEnd").focus({ preventScroll: true });
+  }
+  if (handle) waveEl.setPointerCapture(e.pointerId);
+  e.preventDefault();
+});
+waveEl.addEventListener("pointermove", (e) => { if (trim.drag) moveDrag(e); });
+const endDrag = () => { trim.drag = null; };
+waveEl.addEventListener("pointerup", endDrag);
+waveEl.addEventListener("pointercancel", endDrag);
+
+for (const h of [$("hStart"), $("hEnd")]) {
+  h.addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+    stopPreview();
+    const step = (e.altKey ? 0.001 : e.shiftKey ? 0.1 : 0.01) * (e.key === "ArrowLeft" ? -1 : 1);
+    if (h.dataset.which === "start") setStart(trim.start + step); else setEnd(trim.end + step);
+    updateTrimUI();
+  });
+}
+
+/* typing exact milliseconds */
+const msValue = (id) => Math.max(0, Number($(id).value) || 0) / 1000;
+$("cutStart").addEventListener("input", () => { setStart(msValue("cutStart")); updateTrimUI("cutStart"); });
+$("cutEnd").addEventListener("input", () => { setEnd(trim.total - msValue("cutEnd")); updateTrimUI("cutEnd"); });
+$("cutStart").addEventListener("change", () => updateTrimUI());
+$("cutEnd").addEventListener("change", () => updateTrimUI());
+
+/* preview just the part that will be kept */
+function playPreview() {
+  if (!trim.buffer) return;
+  stopPreview();
+  const ctx = getCtx();
+  if (ctx.state === "suspended") ctx.resume();
+  const src = ctx.createBufferSource();
+  const gainNode = ctx.createGain();
+  gainNode.gain.value = dbToGain(trim.gain);
+  src.buffer = trim.buffer; src.connect(gainNode); gainNode.connect(getMaster());
+  trim.gainNode = gainNode;
+  Object.assign(trim, { playFrom: trim.start, playDur: trim.end - trim.start, playStart: ctx.currentTime });
+  src.start(0, trim.start, trim.end - trim.start);
+  trim.source = src;
+  src.onended = () => { if (trim.source === src) stopPreview(); };
+  $("trimPlay").textContent = "■ Stop";
+  $("playhead").classList.remove("hidden");
+  const tick = () => {
+    const pos = trim.playFrom + Math.min(ctx.currentTime - trim.playStart, trim.playDur);
+    $("playhead").style.left = (pos / trim.total) * 100 + "%";
+    trim.raf = requestAnimationFrame(tick);
+  };
+  tick();
+}
+function stopPreview() {
+  if (trim.source) { trim.source.onended = null; try { trim.source.stop(); } catch (e) {} trim.source = null; }
+  if (trim.gainNode) { try { trim.gainNode.disconnect(); } catch (e) {} trim.gainNode = null; }
+  cancelAnimationFrame(trim.raf);
+  $("playhead").classList.add("hidden");
+  $("trimPlay").textContent = "▶ Preview";
+}
+$("trimPlay").onclick = () => (trim.source ? stopPreview() : playPreview());
+
+$("gainSlider").addEventListener("input", () => setGain(Number($("gainSlider").value)));
+$("gainZero").onclick = () => setGain(0);
+$("gainAuto").onclick = async () => {
+  const btn = $("gainAuto"), hint = $("gainHint");
+  btn.disabled = true;
+  try {
+    const r = await api(`/api/clips/${trim.clip.id}/loudness`);
+    setGain(r.suggested_gain_db);
+    hint.textContent = `This sound measures ${r.lufs.toFixed(1)} LUFS. Set to ${fmtDb(trim.gain)} to match the usual level (${r.target} LUFS). Press ▶ Preview to hear it.`;
+  } catch (e) {
+    hint.textContent = e.message;
+  } finally { btn.disabled = false; }
+};
+$("trimReset").onclick = () => { stopPreview(); trim.start = 0; trim.end = trim.total; setGain(trim.savedGain); updateTrimUI(); };
+$("trimCancel").onclick = () => $("trimDialog").close();
+$("trimDialog").addEventListener("close", () => {
+  stopPreview();
+  trim.token++; trim.buffer = null; trim.drag = null;   // also frees the decoded audio
+});
+window.addEventListener("resize", () => { if ($("trimDialog").open && trim.buffer) drawWave(); });
+
+function trimBusy(on, label) {
+  for (const id of ["trimSave", "trimReset", "trimPlay", "trimRestore", "trimCancel", "cutStart", "cutEnd", "gainSlider", "gainAuto", "gainZero"]) $(id).disabled = on;
+  if (on) $("trimSave").textContent = label; else { $("trimSave").textContent = "Save"; updateTrimUI(); }
+}
+
+$("trimSave").onclick = async () => {
+  if (!trim.buffer || !hasChange()) return;
+  stopPreview();
+  const clip = trim.clip, msg = $("trimMsg");
+  msg.className = "msg"; msg.textContent = "";
+  trimBusy(true, "Saving…");
+  try {
+    if (gainChanged()) {
+      await api(`/api/clips/${clip.id}`, { method: "PATCH", body: { gain_db: trim.gain } });
+      trim.savedGain = trim.gain;
+    }
+    if (hasCut()) {
+      await api(`/api/clips/${clip.id}/trim`, {
+        method: "POST",
+        body: { start: trim.start, end: trim.end >= trim.total ? null : trim.end },
+      });
+    }
+    $("trimDialog").close();
+    await refresh();
+    const fresh = state.clips.find((c) => c.id === clip.id);
+    if (fresh) playClip(fresh);                         // hear the result straight away
+  } catch (err) {
+    msg.className = "msg error"; msg.textContent = err.message;
+    trimBusy(false);
+    $("trimCancel").disabled = $("trimPlay").disabled = false;
+  }
+};
+
+$("trimRestore").onclick = async () => {
+  const clip = trim.clip, msg = $("trimMsg");
+  if (!confirm(`Put back the original sound for "${clip.name}"? Your trims will be undone.`)) return;
+  trimBusy(true, "Restoring…");
+  try {
+    await api(`/api/clips/${clip.id}/restore`, { method: "POST" });
+    $("trimDialog").close();
+    await refresh();
+  } catch (err) {
+    msg.className = "msg error"; msg.textContent = err.message;
+    trimBusy(false);
+  }
+};
+
+/* ---------- board ---------- */
+function textColorFor(hex) {
+  const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 > 150 ? "#111" : "#fff";
+}
+
+function renderBoard() {
+  const board = $("board");
+  board.innerHTML = "";
+  board.classList.toggle("editing", editing);
+  state.board.forEach((slot, i) => {
+    const clip = state.clips.find((c) => c.id === slot.clip_id);
+    const pad = document.createElement("button");
+    pad.className = "pad" + (clip ? "" : " empty-slot");
+    const key = document.createElement("span");
+    key.className = "key"; key.textContent = (i + 1) % 10;
+    const label = document.createElement("span");
+    label.textContent = clip ? clip.name : (editing ? "+ Assign" : "Empty");
+    pad.append(key, label);
+    if (clip) {
+      pad.style.background = `radial-gradient(circle at 35% 30%, ${slot.color}, ${slot.color})`;
+      pad.style.color = textColorFor(slot.color);
+    }
+    pad.onclick = () => {
+      if (editing) openPadDialog(i);
+      else if (clip) playClip(clip, pad);
+    };
+    board.append(pad);
+  });
+  renderPresets();
+}
+
+/* ---------- saved layouts ---------- */
+const sameBoard = (a, b) => a.length === b.length && a.every((s, i) => s.clip_id === b[i].clip_id && s.color.toLowerCase() === b[i].color.toLowerCase());
+let presetMsgTimer = 0;
+let activePresetId = null;       // the layout you last picked or saved (used when several have identical buttons)
+function presetMsg(text, kind) {
+  const el = $("presetMsg");
+  el.textContent = text; el.className = "msg" + (kind ? " " + kind : "");
+  clearTimeout(presetMsgTimer);
+  if (text && kind === "ok") presetMsgTimer = setTimeout(() => { el.textContent = ""; }, 3500);
+}
+function renderPresets() {
+  const sel = $("presetSelect");
+  const presets = [...(state.presets || [])].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+  sel.innerHTML = "";
+  const first = document.createElement("option");
+  first.value = ""; first.textContent = presets.length ? "— Choose a saved layout —" : "— No saved layouts yet —";
+  sel.append(first);
+  // show the saved layout the buttons currently match (if any), so the dropdown never lies
+  const matches = presets.filter((p) => sameBoard(p.board, state.board));
+  const current = matches.find((p) => p.id === activePresetId) || matches[0];
+  for (const p of presets) {
+    const o = document.createElement("option");
+    o.value = p.id; o.textContent = p.name;
+    if (current && p.id === current.id) o.selected = true;
+    sel.append(o);
+  }
+  sel.disabled = !presets.length;
+  $("presetDelete").disabled = !current;
+}
+$("presetSelect").onchange = async () => {
+  const sel = $("presetSelect"), id = sel.value;
+  if (!id) return;
+  const preset = state.presets.find((p) => p.id === id);
+  try {
+    stopAll();
+    activePresetId = id;
+    await api(`/api/presets/${id}/apply`, { method: "POST" });
+    await refresh();
+    if (preset) $("presetName").value = preset.name;      // handy: tweak the buttons, then Save to update it
+    presetMsg(`Loaded “${preset ? preset.name : "layout"}”.`, "ok");
+  } catch (e) { presetMsg(e.message, "error"); await refresh(); }
+  $("presetSelect").blur();                               // so the 1–9 / 0 keys fire buttons again
+};
+$("presetSave").onclick = async () => {
+  const name = $("presetName").value.replace(/\s+/g, " ").trim();
+  if (!name) { presetMsg("Type a name for this layout first.", "error"); $("presetName").focus(); return; }
+  const dupe = state.presets.find((p) => p.name.toLowerCase() === name.toLowerCase());
+  if (dupe && !confirm(`A layout called “${dupe.name}” already exists. Replace it with the buttons as they are now?`)) return;
+  try {
+    const saved = await api("/api/presets", { method: "POST", body: { name } });
+    activePresetId = saved.id;
+    await refresh();
+    $("presetName").value = saved.name;
+    presetMsg(`Saved “${saved.name}”.`, "ok");
+  } catch (e) { presetMsg(e.message, "error"); }
+};
+$("presetName").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); $("presetSave").click(); } });
+$("presetDelete").onclick = async () => {
+  const id = $("presetSelect").value, preset = state.presets.find((p) => p.id === id);
+  if (!preset || !confirm(`Delete the saved layout “${preset.name}”? Your sounds are not deleted, and the buttons stay as they are.`)) return;
+  try {
+    await api("/api/presets/" + id, { method: "DELETE" });
+    if (activePresetId === id) activePresetId = null;
+    await refresh();
+    if ($("presetName").value === preset.name) $("presetName").value = "";
+    presetMsg(`Deleted “${preset.name}”.`, "ok");
+  } catch (e) { presetMsg(e.message, "error"); }
+};
+
+function openPadDialog(i) {
+  editingSlot = i;
+  const slot = state.board[i];
+  $("padTitle").textContent = "Button " + (i + 1);
+  const sel = $("padClip");
+  sel.innerHTML = '<option value="">— Empty —</option>';
+  const usedElsewhere = new Set(state.board.filter((_, j) => j !== i).map((s) => s.clip_id));
+  for (const c of state.clips) {
+    const o = document.createElement("option");
+    o.value = c.id; o.textContent = c.name + (usedElsewhere.has(c.id) ? " (on another button)" : "");
+    if (c.id === slot.clip_id) o.selected = true;
+    sel.append(o);
+  }
+  $("padColor").value = slot.color;
+  renderSwatches();
+  $("padDialog").showModal();
+}
+
+function renderSwatches() {
+  const wrap = $("swatches");
+  wrap.innerHTML = "";
+  for (const col of PALETTE) {
+    const b = document.createElement("button");
+    b.type = "button"; b.style.background = col;
+    b.className = $("padColor").value.toLowerCase() === col ? "sel" : "";
+    b.onclick = () => { $("padColor").value = col; renderSwatches(); };
+    wrap.append(b);
+  }
+}
+$("padColor").addEventListener("input", renderSwatches);
+$("padCancel").onclick = () => $("padDialog").close();
+$("padSave").onclick = async () => {
+  const clipId = $("padClip").value || null;
+  const board = state.board.map((s) => ({ ...s }));
+  // a clip can only sit on one button: move it here if it was elsewhere
+  if (clipId) board.forEach((s, j) => { if (j !== editingSlot && s.clip_id === clipId) s.clip_id = null; });
+  board[editingSlot] = { clip_id: clipId, color: $("padColor").value };
+  try {
+    await api("/api/board", { method: "PUT", body: { board } });
+    $("padDialog").close();
+    await refresh();
+  } catch (e) { alert(e.message); }
+};
+
+$("editToggle").onclick = () => {
+  editing = !editing;
+  $("editToggle").textContent = editing ? "✓ Done editing" : "✎ Edit buttons";
+  $("boardHint").textContent = editing
+    ? "Click any button to choose its sound and color."
+    : "Tip: press keys 1–9 and 0 on your keyboard to fire the buttons.";
+  renderBoard();
+};
+$("stopAll").onclick = stopAll;
+
+document.addEventListener("keydown", (e) => {
+  if (currentView !== "board" || editing || e.repeat) return;
+  if (e.target.matches("input, select, textarea")) return;
+  if (!/^[0-9]$/.test(e.key)) return;
+  const idx = e.key === "0" ? 9 : Number(e.key) - 1;
+  const slot = state.board[idx];
+  const clip = slot && state.clips.find((c) => c.id === slot.clip_id);
+  if (clip) playClip(clip, $("board").children[idx]);
+});
+
+/* ---------- tabs ---------- */
+function showView(v) {
+  currentView = v;
+  $("viewLibrary").classList.toggle("hidden", v !== "library");
+  $("viewBoard").classList.toggle("hidden", v !== "board");
+  $("tabLibrary").classList.toggle("active", v === "library");
+  $("tabBoard").classList.toggle("active", v === "board");
+  if (v === "board") renderBoard();
+}
+$("tabLibrary").onclick = () => showView("library");
+$("tabBoard").onclick = () => showView("board");
+
+refresh();
+</script>
+</body>
+</html>
